@@ -3,6 +3,7 @@ package Podcast::ESLPodcast::Splitter;
 use warnings;
 use strict;
 use Carp;
+
 use LWP::UserAgent;
 use File::Basename;
 use XML::FeedPP;
@@ -11,8 +12,7 @@ use Data::Dumper;
 use Time::Piece;
 use List::MoreUtils qw(any all);
 
-use version;
-my $VERSION = qv('0.0.3');
+use version; our $VERSION = qv('0.0.1');
 
 use constant FEEDURI => 'http://feeds.feedburner.com/EnglishAsASecondLanguagePodcast?format=xml';
 
@@ -53,7 +53,7 @@ sub run {
             $item->link, $item->title, $item->guid, ""; # $item->description;
 
         my $durations = extract_durations($item->description);
-        next if (!defined($durations));
+        next if (!$durations);
 
         my $uri = $item->guid();
         my $mp3_file = basename($uri);
@@ -91,7 +91,7 @@ sub extract_durations {
     # print Dumper($started_at);
     if (!(all {defined($_)} values %$started_at)) {
         printf STDERR "something wrong in this feed\n";
-        return undef;
+        return 0;
     }
 
     # find durations
