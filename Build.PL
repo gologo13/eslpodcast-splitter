@@ -4,7 +4,7 @@ use Module::Build;
 
 my $builder = Module::Build->new(
     module_name         => 'Podcast::ESLPodcast::Splitter',
-    license             => 'artistic2',
+    license             => 'mit',
     dist_author         => 'Yohei Yamaguchi <joker13meister@gmail.com>',
     dist_version_from   => 'lib/Podcast/ESLPodcast/Splitter.pm',
     requires => {
