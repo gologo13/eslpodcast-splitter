@@ -11,7 +11,6 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
-lib/Podcast/ESLPodcast/main.pl
 lib/Podcast/ESLPodcast/Splitter.pm
 Makefile.old
 Makefile.PL
@@ -24,3 +23,4 @@ t/00.load.t
 t/perlcritic.t
 t/pod-coverage.t
 t/pod.t
+META.json
