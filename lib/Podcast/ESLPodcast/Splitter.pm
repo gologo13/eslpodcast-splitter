@@ -192,6 +192,7 @@ This document describes Podcast::ESLPodcast::Splitter version 0.0.1
 
 =head1 DIAGNOSTICS
 
+
     "skip: English Cafe"
         skip because an English Cafe mp3 files cannot be splitted.
 
@@ -200,6 +201,8 @@ This document describes Podcast::ESLPodcast::Splitter version 0.0.1
 
     "split failure"
         cannot split a downloaded mp3 file.
+
+=over
 
 =item C<< Error message here, perhaps with %s placeholders >>
 
