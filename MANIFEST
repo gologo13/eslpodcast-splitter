@@ -12,12 +12,9 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/Podcast/ESLPodcast/Splitter.pm
-Makefile.old
 Makefile.PL
 MANIFEST			This list of files
 META.yml
-MYMETA.json
-MYMETA.yml
 README
 t/00.load.t
 t/perlcritic.t

@@ -2,3 +2,5 @@ MANIFEST.bak
 Makefile.old
 inc
 META.yml
+META.json
+Makefile
