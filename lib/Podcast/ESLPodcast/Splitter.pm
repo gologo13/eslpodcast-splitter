@@ -14,13 +14,14 @@ use List::MoreUtils qw(any all);
 
 use version; our $VERSION = qv('0.0.1');
 
-use constant FEEDURI => 'http://feeds.feedburner.com/EnglishAsASecondLanguagePodcast?format=xml';
+use constant FEEDURI =>
+  'http://feeds.feedburner.com/EnglishAsASecondLanguagePodcast?format=xml';
 
 # constructor
 sub new {
-    my ($class, @args) = @_;
-    my %args = ref $args[0] eq 'HASH' ? %{$args[0]} : @args;
-    my $self = { %args };
+    my ( $class, @args ) = @_;
+    my %args = ref $args[0] eq 'HASH' ? %{ $args[0] } : @args;
+    my $self = {%args};
     $self->{n} ||= 5;
     bless $self, $class;
 }
@@ -29,39 +30,39 @@ sub new {
 sub fetch_feed {
     my $feed = XML::FeedPP->new(FEEDURI);
     printf STDERR "===============FEED INFO================\n";
-    printf STDERR "Title: %s\n", $feed->title;
-    printf STDERR "Date: %s\n", $feed->pubDate;
+    printf STDERR "Title: %s\n",     $feed->title;
+    printf STDERR "Date: %s\n",      $feed->pubDate;
     printf STDERR "Copyright: %s\n", $feed->copyright;
-    printf STDERR "Link: %s\n", $feed->link;
-    printf STDERR "Language: %s\n", $feed->language;
+    printf STDERR "Link: %s\n",      $feed->link;
+    printf STDERR "Language: %s\n",  $feed->language;
     printf STDERR "========================================\n";
     return $feed;
 }
 
 sub run {
-    my $self = shift;
-    my $feed = fetch_feed();
-    my $num_mp3s = 0;
-    for my $item ($feed->get_item()) {
-        if ($item->title =~ /English Cafe/) {
+    my $self     = shift;
+    my $feed     = fetch_feed();
+    my $num_mp3s = 1;
+    for my $item ( $feed->get_item() ) {
+        if ( $item->title =~ /English Cafe/ ) {
             printf STDERR "Skip: %s\n", $item->title;
             next;
         }
-        last if ($num_mp3s > $self->{n});
+        last if ( $num_mp3s > $self->{n} );
 
-        printf STDERR "\tURL: %s\n\tTitle: %s\n\tguid: %s\n\tDescription: %s\n", 
-            $item->link, $item->title, $item->guid, ""; # $item->description;
+        printf STDERR "\tURL: %s\n\tTitle: %s\n\tguid: %s\n\tDescription: %s\n",
+          $item->link, $item->title, $item->guid, "";    # $item->description;
 
-        my $durations = extract_durations($item->description);
-        next if (!$durations);
+        my $durations = extract_durations( $item->description );
+        next if ( !$durations );
 
-        my $uri = $item->guid();
+        my $uri      = $item->guid();
         my $mp3_file = basename($uri);
-        if (!download_mp3(\$uri, \$mp3_file)) {
+        if ( !download_mp3( \$uri, \$mp3_file ) ) {
             printf STDERR "download failure: %s\n", $mp3_file;
             next;
         }
-        if (split_mp3(\$mp3_file, $durations)) {
+        if ( split_mp3( \$mp3_file, $durations ) ) {
             printf STDERR "split failure: %s\n", $mp3_file;
         }
 
@@ -75,8 +76,8 @@ sub extract_durations {
     my ($desc) = @_;
 
     # find started at
-    my $started_at = {slow => undef, explanation => undef, fast => undef};
-    for (split(/[\n|\r\n]/, $desc)) {
+    my $started_at = { slow => undef, explanation => undef, fast => undef };
+    for ( split( /[\n|\r\n]/, $desc ) ) {
         chomp;
         if (/Slow (dialog|dialogue):\s*(\d+:\d+)/) {
             $started_at->{slow} = $2;
@@ -88,73 +89,72 @@ sub extract_durations {
             $started_at->{fast} = $2;
         }
     }
+
     # print Dumper($started_at);
-    if (!(all {defined($_)} values %$started_at)) {
+    if ( !( all { defined($_) } values %$started_at ) ) {
         printf STDERR "something wrong in this feed\n";
         return 0;
     }
 
     # find durations
-    my $durations = {slow=>undef, explanation=>undef, fast=>undef};
+    my $durations = { slow => undef, explanation => undef, fast => undef };
     $durations->{slow} = [
         $started_at->{slow},
-        find_duration($started_at->{explanation},$started_at->{slow})
+        find_duration( $started_at->{explanation}, $started_at->{slow} )
     ];
     $durations->{explanation} = [
         $started_at->{explanation},
-        find_duration($started_at->{fast},$started_at->{explanation})
+        find_duration( $started_at->{fast}, $started_at->{explanation} )
     ];
-    $durations->{fast} = [
-        $started_at->{fast},
-        "=INF"
-    ];
+    $durations->{fast} = [ $started_at->{fast}, "=INF" ];
     return $durations;
 }
 
 # find a duration
 sub find_duration {
-    my ($from, $to) = @_;
-    my $t1 = Time::Piece->strptime($from, "%M:%S");
-    my $t2 = Time::Piece->strptime($to,   "%M:%S");
+    my ( $from, $to ) = @_;
+    my $t1 = Time::Piece->strptime( $from, "%M:%S" );
+    my $t2 = Time::Piece->strptime( $to,   "%M:%S" );
     my $diff = $t2 - $t1;
     return $diff->seconds;
 }
 
 # split a mp3 file into three files
 sub split_mp3 {
-    my ($mp3_file, $durations) = @_;
-    mp3split($$mp3_file, {verbose => 1}, 
-        $durations->{start}, $durations->{explanation},$durations->{fast});
+    my ( $mp3_file, $durations ) = @_;
+    mp3split(
+        $$mp3_file, { verbose => 1 },
+        $durations->{start}, $durations->{explanation},
+        $durations->{fast}
+    );
     return 1;
 }
 
 # download a mp3 file
 sub download_mp3 {
-    my ($uri, $mp3_file) = @_;
-    open(my $fh, '>', $$mp3_file) or die "$$mp3_file: $!";
+    my ( $uri, $mp3_file ) = @_;
+    open( my $fh, '>', $$mp3_file ) or die "$$mp3_file: $!";
     my $res = LWP::UserAgent->new->get(
         $$uri,
         ':content_cb' => sub {
-            my ($chunk, $res, $proto) = @_;
+            my ( $chunk, $res, $proto ) = @_;
             print $fh $chunk;
             my $size = tell $fh;
-            if (my $total = $res->header('Content-Length')) {
-                printf "%d/%d (%f%%)\r", $size, $total, $size/$total*100;
-            } else {
+            if ( my $total = $res->header('Content-Length') ) {
+                printf "%d/%d (%f%%)\r", $size, $total, $size / $total * 100;
+            }
+            else {
                 printf "%d/Unknown bytes\r", $size;
             }
         }
     );
     close $fh;
     print "\n", $res->status_line, "\n";
-    unlink $$mp3_file if (!$res->is_success);
+    unlink $$mp3_file if ( !$res->is_success );
     return $res->is_success;
 }
 
-# Module implementation here
-
-
-1; # Magic true value required at end of module
+1;    # Magic true value required at end of module
 __END__
 
 =head1 NAME
@@ -171,14 +171,11 @@ This document describes Podcast::ESLPodcast::Splitter version 0.0.1
 
     use Podcast::ESLPodcast::Splitter;
 
-=for author to fill in:
-    Brief code example(s) here showing commonest usage(s).
-    This section will be as far as many users bother reading
-    so make it as educational and exeplary as possible.
-  
-  
+    Podcast::ESLPodcast::Splitter->new()->run();
+
 =head1 DESCRIPTION
 
+    
 =for author to fill in:
     Write a full description of the module and its features here.
     Use subsections (=head2, =head3) as appropriate.
