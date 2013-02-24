@@ -1,7 +1,7 @@
 Podcast-ESLPodcast-Splitter version 0.0.1
 
 The Podcast::ESLPodcast::Splitter splits the ESLPodcast mp3 file into
-three mp3 files, slow dialog, explanation and fast dialog mp3 files.
+three mp3 files, slow dialog, explanation and fast dialog.
 
 INSTALLATION
 
